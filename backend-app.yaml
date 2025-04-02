@@ -1,0 +1,30 @@
+name: awil-backend
+services:
+- name: api
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: your-github-username/awil
+  envs:
+  - key: PORT
+    value: "3001"
+  - key: DB_HOST
+    scope: RUN_TIME
+    type: SECRET
+  - key: DB_USER
+    scope: RUN_TIME
+    type: SECRET
+  - key: DB_PASSWORD
+    scope: RUN_TIME
+    type: SECRET
+  - key: DB_NAME
+    value: "awil_db"
+  - key: JWT_SECRET
+    scope: RUN_TIME
+    type: SECRET
+  - key: NODE_ENV
+    value: "production"
+  http_port: 3001
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  run_command: npm start 
