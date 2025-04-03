@@ -27,18 +27,16 @@ jobs:
       run: |
         npm run build
 
-    - name: Deploy to Azure Web App
+    - name: Deploy Backend to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'awil-backend'
         package: './backend/dist'
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_BACKEND }}
 
-    - name: Deploy to Azure Static Web App
-      uses: Azure/static-web-apps-deploy@v1
+    - name: Deploy Frontend to Azure Web App
+      uses: azure/webapps-deploy@v2
       with:
-        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APP_TOKEN }}
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        action: "upload"
-        app_location: "/frontend"
-        output_location: "build" 
+        app-name: 'awil-frontend'
+        package: './frontend/build'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_FRONTEND }} 

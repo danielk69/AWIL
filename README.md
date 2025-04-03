@@ -15,7 +15,7 @@ A full-stack web application for managing and visualizing learning data.
 - Frontend: React with TypeScript
 - Backend: Node.js with Express
 - Database: Azure Database for PostgreSQL
-- Deployment: Azure Web App (Backend) and Azure Static Web Apps (Frontend)
+- Deployment: Azure App Service (Free F1 tier)
 
 ## Prerequisites
 
@@ -62,6 +62,7 @@ A full-stack web application for managing and visualizing learning data.
    - Choose Node.js 18 LTS as runtime stack
    - Select your subscription and resource group
    - Choose Free F1 plan
+   - Name it `awil-backend`
 
 2. Configure environment variables in Azure Web App:
    - Go to Configuration > Application settings
@@ -76,29 +77,39 @@ A full-stack web application for managing and visualizing learning data.
      NODE_ENV=production
      ```
 
-3. Deploy backend:
-   - Connect your GitHub repository
-   - Select the main branch
-   - Set the build command to: `npm run build`
-   - Set the start command to: `npm start`
-
 ### Frontend Deployment
 
-1. Create an Azure Static Web App:
+1. Create another Azure Web App:
    - Go to Azure Portal
-   - Create a new Static Web App
-   - Connect your GitHub repository
-   - Select the main branch
-   - Set the build command to: `npm run build`
-   - Set the output location to: `build`
+   - Create a new Web App
+   - Choose Node.js 18 LTS as runtime stack
+   - Select your subscription and resource group
+   - Choose Free F1 plan
+   - Name it `awil-frontend`
 
 2. Configure environment variables:
    - Go to Configuration > Application settings
    - Add the following variables:
      ```
-     REACT_APP_API_URL=https://your-backend-name.azurewebsites.net/api
+     REACT_APP_API_URL=https://awil-backend.azurewebsites.net/api
      REACT_APP_TITLE=AWIL
      ```
+
+3. Configure the frontend Web App:
+   - Go to Configuration > General settings
+   - Set "Stack settings" to Node 18 LTS
+   - Set "Startup Command" to: `serve -s build -l 3000`
+   - Enable "Always On" (optional, but recommended)
+
+4. Deploy both apps:
+   - Connect your GitHub repository to both Web Apps
+   - Select the main branch
+   - For backend, set:
+     - Build command: `npm run build`
+     - Start command: `npm start`
+   - For frontend, set:
+     - Build command: `npm run build`
+     - Start command: `serve -s build -l 3000`
 
 ## Contributing
 
