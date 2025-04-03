@@ -1,98 +1,113 @@
-# AWIL - Name Management System
+# AWIL - A Web-based Interface for Learning
 
-A full-stack web application for managing and visualizing name data with user authentication.
+A full-stack web application for managing and visualizing learning data.
 
 ## Features
 
 - User authentication system
-- Data import from spreadsheets
+- Data import from Excel spreadsheets
+- Data management interface
 - Data visualization with charts
-- Admin portal for data management
-- User portal for theme selection
+- Responsive design
 
 ## Tech Stack
 
 - Frontend: React with TypeScript
 - Backend: Node.js with Express
-- Database: PostgreSQL
-- UI Framework: Material-UI
-- Charts: Chart.js
+- Database: Azure Database for PostgreSQL
+- Deployment: Azure Web App (Backend) and Azure Static Web Apps (Frontend)
 
-## Project Structure
+## Prerequisites
 
-```
-awil/
-├── backend/           # Node.js backend
-│   ├── src/          # Source code
-│   ├── config/       # Configuration files
-│   └── package.json  # Backend dependencies
-└── frontend/         # React frontend
-    ├── src/          # Source code
-    ├── public/       # Static files
-    └── package.json  # Frontend dependencies
-```
+- Node.js (v18 or higher)
+- npm (v9 or higher)
+- Azure account
+- Azure CLI (optional)
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v14 or higher)
-- PostgreSQL
-- npm or yarn
-
-### Installation
+## Local Development Setup
 
 1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/awil.git
-cd awil
-```
+   ```bash
+   git clone https://github.com/yourusername/awil.git
+   cd awil
+   ```
 
-2. Install backend dependencies:
-```bash
-cd backend
-npm install
-```
+2. Install dependencies:
+   ```bash
+   npm run install-all
+   ```
 
-3. Install frontend dependencies:
-```bash
-cd ../frontend
-npm install
-```
+3. Set up environment variables:
+   - Backend: Create `.env` file in the `backend` directory
+   - Frontend: Create `.env` file in the `frontend` directory
 
-4. Set up environment variables:
-   - Copy `.env.example` to `.env` in both backend and frontend directories
-   - Update the variables with your values
+4. Start the development servers:
+   ```bash
+   # Start backend
+   cd backend
+   npm run dev
 
-5. Start the development servers:
+   # Start frontend (in a new terminal)
+   cd frontend
+   npm start
+   ```
 
-Backend:
-```bash
-cd backend
-npm run dev
-```
+## Azure Deployment
 
-Frontend:
-```bash
-cd frontend
-npm start
-```
+### Backend Deployment
 
-## Deployment
+1. Create an Azure Web App:
+   - Go to Azure Portal
+   - Create a new Web App
+   - Choose Node.js 18 LTS as runtime stack
+   - Select your subscription and resource group
+   - Choose Free F1 plan
 
-The application is deployed using:
-- Backend: Railway.app
-- Frontend: Netlify
-- Database: Railway PostgreSQL
+2. Configure environment variables in Azure Web App:
+   - Go to Configuration > Application settings
+   - Add the following variables:
+     ```
+     PORT=3001
+     DB_HOST=your-db-server.postgres.database.azure.com
+     DB_USER=your-db-user
+     DB_PASSWORD=your-db-password
+     DB_NAME=your-db-name
+     JWT_SECRET=your-jwt-secret
+     NODE_ENV=production
+     ```
+
+3. Deploy backend:
+   - Connect your GitHub repository
+   - Select the main branch
+   - Set the build command to: `npm run build`
+   - Set the start command to: `npm start`
+
+### Frontend Deployment
+
+1. Create an Azure Static Web App:
+   - Go to Azure Portal
+   - Create a new Static Web App
+   - Connect your GitHub repository
+   - Select the main branch
+   - Set the build command to: `npm run build`
+   - Set the output location to: `build`
+
+2. Configure environment variables:
+   - Go to Configuration > Application settings
+   - Add the following variables:
+     ```
+     REACT_APP_API_URL=https://your-backend-name.azurewebsites.net/api
+     REACT_APP_TITLE=AWIL
+     ```
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. # awil
+This project is licensed under the ISC License.

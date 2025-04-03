@@ -4,40 +4,40 @@ import {
   Box,
   Typography,
   Paper,
+  Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Button,
-  TextField,
+  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  IconButton,
-  Chip,
-  Stack,
   SelectChangeEvent,
 } from '@mui/material';
 import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
-import { Theme, Subtheme, Category, Name, AllData } from '../types';
 import * as api from '../services/api';
+import { AllData } from '../types';
 
 const DataManagement: React.FC = () => {
   const [data, setData] = useState<AllData | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [dialogType, setDialogType] = useState<'theme' | 'subtheme' | 'category' | 'name'>('theme');
-  const [newItemName, setNewItemName] = useState('');
-  const [selectedThemeId, setSelectedThemeId] = useState<string>('');
-  const [selectedSubthemeId, setSelectedSubthemeId] = useState<string>('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [themeDialogOpen, setThemeDialogOpen] = useState(false);
+  const [subthemeDialogOpen, setSubthemeDialogOpen] = useState(false);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [nameDialogOpen, setNameDialogOpen] = useState(false);
+  const [newItem, setNewItem] = useState({ name: '' });
+  const [selectedThemeId, setSelectedThemeId] = useState<number | ''>('');
+  const [selectedSubthemeId, setSelectedSubthemeId] = useState<number | ''>('');
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -52,72 +52,76 @@ const DataManagement: React.FC = () => {
     }
   };
 
-  const handleOpenDialog = (type: 'theme' | 'subtheme' | 'category' | 'name') => {
-    setDialogType(type);
-    setNewItemName('');
-    setSelectedThemeId('');
-    setSelectedSubthemeId('');
-    setSelectedCategories([]);
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const handleAddItem = async () => {
-    try {
-      switch (dialogType) {
-        case 'theme':
-          await api.addTheme(newItemName);
-          break;
-        case 'subtheme':
-          if (selectedThemeId) {
-            await api.addSubtheme(Number(selectedThemeId), newItemName);
-          }
-          break;
-        case 'category':
-          if (selectedSubthemeId) {
-            await api.addCategory(Number(selectedSubthemeId), newItemName);
-          }
-          break;
-        case 'name':
-          if (selectedCategories.length > 0) {
-            await api.addName(newItemName, selectedCategories.map(Number));
-          }
-          break;
-      }
-      await fetchData();
-      handleCloseDialog();
-    } catch (error) {
-      console.error('Error adding item:', error);
-    }
-  };
-
-  const handleDeleteName = async (id: number) => {
-    try {
-      await api.deleteName(id);
-      await fetchData();
-    } catch (error) {
-      console.error('Error deleting name:', error);
-    }
-  };
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       try {
         await api.importData(file);
-        await fetchData();
+        fetchData();
       } catch (error) {
         console.error('Error importing data:', error);
       }
     }
   };
 
-  const filteredNames = data?.names.filter((name) =>
-    name.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleAddTheme = async () => {
+    try {
+      await api.addTheme(newItem.name);
+      setThemeDialogOpen(false);
+      setNewItem({ name: '' });
+      fetchData();
+    } catch (error) {
+      console.error('Error adding theme:', error);
+    }
+  };
+
+  const handleAddSubtheme = async () => {
+    if (!selectedThemeId) return;
+    try {
+      await api.addSubtheme(selectedThemeId, newItem.name);
+      setSubthemeDialogOpen(false);
+      setNewItem({ name: '' });
+      setSelectedThemeId('');
+      fetchData();
+    } catch (error) {
+      console.error('Error adding subtheme:', error);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (!selectedSubthemeId) return;
+    try {
+      await api.addCategory(selectedSubthemeId, newItem.name);
+      setCategoryDialogOpen(false);
+      setNewItem({ name: '' });
+      setSelectedSubthemeId('');
+      fetchData();
+    } catch (error) {
+      console.error('Error adding category:', error);
+    }
+  };
+
+  const handleAddName = async () => {
+    if (selectedCategoryIds.length === 0) return;
+    try {
+      await api.addName(newItem.name, selectedCategoryIds);
+      setNameDialogOpen(false);
+      setNewItem({ name: '' });
+      setSelectedCategoryIds([]);
+      fetchData();
+    } catch (error) {
+      console.error('Error adding name:', error);
+    }
+  };
+
+  const handleDeleteName = async (id: number) => {
+    try {
+      await api.deleteName(id);
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting name:', error);
+    }
+  };
 
   return (
     <Container>
@@ -127,7 +131,7 @@ const DataManagement: React.FC = () => {
         </Typography>
 
         <Paper sx={{ p: 2, mb: 3 }}>
-          <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
             <Button
               variant="contained"
               component="label"
@@ -138,173 +142,216 @@ const DataManagement: React.FC = () => {
                 type="file"
                 hidden
                 accept=".xlsx,.xls"
-                onChange={handleFileUpload}
+                onChange={handleImport}
               />
             </Button>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog('theme')}
+              onClick={() => setThemeDialogOpen(true)}
             >
               Add Theme
             </Button>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog('subtheme')}
+              onClick={() => setSubthemeDialogOpen(true)}
             >
               Add Subtheme
             </Button>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog('category')}
+              onClick={() => setCategoryDialogOpen(true)}
             >
               Add Category
             </Button>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => handleOpenDialog('name')}
+              onClick={() => setNameDialogOpen(true)}
             >
               Add Name
             </Button>
-          </Stack>
-
-          <TextField
-            fullWidth
-            label="Search Names"
-            variant="outlined"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ mb: 3 }}
-          />
+          </Box>
 
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
+                  <TableCell>Theme</TableCell>
+                  <TableCell>Subtheme</TableCell>
+                  <TableCell>Category</TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell>Categories</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredNames?.map((name) => (
-                  <TableRow key={name.id}>
-                    <TableCell>{name.name}</TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        {data?.nameCategories
-                          .filter((nc) => nc.name_id === name.id)
-                          .map((nc) => {
-                            const category = data.categories.find(
-                              (c) => c.id === nc.category_id
-                            );
-                            return (
-                              <Chip
-                                key={nc.category_id}
-                                label={category?.name}
-                                size="small"
-                              />
-                            );
-                          })}
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDeleteName(name.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {data?.names.map((name) => {
+                  const nameCategory = data.nameCategories.find(
+                    (nc) => nc.name_id === name.id
+                  );
+                  const category = data.categories.find(
+                    (c) => c.id === nameCategory?.category_id
+                  );
+                  const subtheme = data.subthemes.find(
+                    (s) => s.id === category?.subtheme_id
+                  );
+                  const theme = data.themes.find(
+                    (t) => t.id === subtheme?.theme_id
+                  );
+
+                  return (
+                    <TableRow key={name.id}>
+                      <TableCell>{theme?.name}</TableCell>
+                      <TableCell>{subtheme?.name}</TableCell>
+                      <TableCell>{category?.name}</TableCell>
+                      <TableCell>{name.name}</TableCell>
+                      <TableCell>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleDeleteName(name.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
         </Paper>
 
-        <Dialog open={openDialog} onClose={handleCloseDialog}>
-          <DialogTitle>
-            Add {dialogType.charAt(0).toUpperCase() + dialogType.slice(1)}
-          </DialogTitle>
+        {/* Dialogs */}
+        <Dialog open={themeDialogOpen} onClose={() => setThemeDialogOpen(false)}>
+          <DialogTitle>Add Theme</DialogTitle>
           <DialogContent>
-            <Box sx={{ mt: 2 }}>
-              <TextField
-                fullWidth
-                label="Name"
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                sx={{ mb: 2 }}
-              />
-              {dialogType === 'subtheme' && (
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Theme</InputLabel>
-                  <Select
-                    value={selectedThemeId}
-                    onChange={(e: SelectChangeEvent) =>
-                      setSelectedThemeId(e.target.value)
-                    }
-                    label="Theme"
-                  >
-                    {data?.themes.map((theme) => (
-                      <MenuItem key={theme.id} value={theme.id}>
-                        {theme.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-              {dialogType === 'category' && (
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Subtheme</InputLabel>
-                  <Select
-                    value={selectedSubthemeId}
-                    onChange={(e: SelectChangeEvent) =>
-                      setSelectedSubthemeId(e.target.value)
-                    }
-                    label="Subtheme"
-                  >
-                    {data?.subthemes.map((subtheme) => (
-                      <MenuItem key={subtheme.id} value={subtheme.id}>
-                        {subtheme.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-              {dialogType === 'name' && (
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Categories</InputLabel>
-                  <Select
-                    multiple
-                    value={selectedCategories}
-                    onChange={(e: SelectChangeEvent<string[]>) =>
-                      setSelectedCategories(
-                        typeof e.target.value === 'string'
-                          ? [e.target.value]
-                          : e.target.value
-                      )
-                    }
-                    label="Categories"
-                  >
-                    {data?.categories.map((category) => (
-                      <MenuItem key={category.id} value={category.id}>
-                        {category.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-            </Box>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Theme Name"
+              fullWidth
+              value={newItem.name}
+              onChange={(e) => setNewItem({ name: e.target.value })}
+            />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button onClick={handleAddItem} variant="contained">
-              Add
-            </Button>
+            <Button onClick={() => setThemeDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddTheme}>Add</Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={subthemeDialogOpen}
+          onClose={() => setSubthemeDialogOpen(false)}
+        >
+          <DialogTitle>Add Subtheme</DialogTitle>
+          <DialogContent>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel>Theme</InputLabel>
+              <Select
+                value={selectedThemeId}
+                label="Theme"
+                onChange={(e: SelectChangeEvent<number>) =>
+                  setSelectedThemeId(Number(e.target.value))
+                }
+              >
+                {data?.themes.map((theme) => (
+                  <MenuItem key={theme.id} value={theme.id}>
+                    {theme.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Subtheme Name"
+              fullWidth
+              value={newItem.name}
+              onChange={(e) => setNewItem({ name: e.target.value })}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setSubthemeDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddSubtheme}>Add</Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={categoryDialogOpen}
+          onClose={() => setCategoryDialogOpen(false)}
+        >
+          <DialogTitle>Add Category</DialogTitle>
+          <DialogContent>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel>Subtheme</InputLabel>
+              <Select
+                value={selectedSubthemeId}
+                label="Subtheme"
+                onChange={(e: SelectChangeEvent<number>) =>
+                  setSelectedSubthemeId(Number(e.target.value))
+                }
+              >
+                {data?.subthemes.map((subtheme) => (
+                  <MenuItem key={subtheme.id} value={subtheme.id}>
+                    {subtheme.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Category Name"
+              fullWidth
+              value={newItem.name}
+              onChange={(e) => setNewItem({ name: e.target.value })}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setCategoryDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddCategory}>Add</Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={nameDialogOpen} onClose={() => setNameDialogOpen(false)}>
+          <DialogTitle>Add Name</DialogTitle>
+          <DialogContent>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel>Categories</InputLabel>
+              <Select
+                multiple
+                value={selectedCategoryIds}
+                label="Categories"
+                onChange={(e: SelectChangeEvent<number[]>) =>
+                  setSelectedCategoryIds(
+                    typeof e.target.value === 'string'
+                      ? [Number(e.target.value)]
+                      : e.target.value.map(Number)
+                  )
+                }
+              >
+                {data?.categories.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Name"
+              fullWidth
+              value={newItem.name}
+              onChange={(e) => setNewItem({ name: e.target.value })}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setNameDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddName}>Add</Button>
           </DialogActions>
         </Dialog>
       </Box>

@@ -4,14 +4,13 @@ import {
   Box,
   Typography,
   Paper,
-  Grid as MuiGrid,
+  Grid,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   SelectChangeEvent,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -23,7 +22,7 @@ import {
   ArcElement,
 } from 'chart.js';
 import { Bar, Pie } from 'react-chartjs-2';
-import { Theme, AllData } from '../types';
+import { AllData } from '../types';
 import * as api from '../services/api';
 
 ChartJS.register(
@@ -35,8 +34,6 @@ ChartJS.register(
   Legend,
   ArcElement
 );
-
-const Grid = styled(MuiGrid)({});
 
 const DataVisualization: React.FC = () => {
   const [data, setData] = useState<AllData | null>(null);

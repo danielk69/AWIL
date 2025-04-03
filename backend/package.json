@@ -6,7 +6,9 @@
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "azure-build": "npm install && npm run build",
+    "azure-start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
