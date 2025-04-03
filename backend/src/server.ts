@@ -3,20 +3,34 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import dataRoutes from './routes/dataRoutes';
+import { authenticateToken } from './middleware/auth';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://awil-frontend.azurewebsites.net'
+    : 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/data', dataRoutes);
+app.use('/api/data', authenticateToken, dataRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // Basic route for testing
 app.get('/', (req, res) => {

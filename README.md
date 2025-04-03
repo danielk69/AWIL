@@ -64,7 +64,13 @@ A full-stack web application for managing and visualizing learning data.
    - Choose Free F1 plan
    - Name it `awil-backend`
 
-2. Configure environment variables in Azure Web App:
+2. Enable Basic Authentication:
+   - Go to Authentication / Authorization
+   - Turn ON "App Service Authentication"
+   - Choose "Basic Authentication"
+   - Save the changes
+
+3. Configure environment variables in Azure Web App:
    - Go to Configuration > Application settings
    - Add the following variables:
      ```
@@ -87,7 +93,13 @@ A full-stack web application for managing and visualizing learning data.
    - Choose Free F1 plan
    - Name it `awil-frontend`
 
-2. Configure environment variables:
+2. Enable Basic Authentication:
+   - Go to Authentication / Authorization
+   - Turn ON "App Service Authentication"
+   - Choose "Basic Authentication"
+   - Save the changes
+
+3. Configure environment variables:
    - Go to Configuration > Application settings
    - Add the following variables:
      ```
@@ -95,13 +107,13 @@ A full-stack web application for managing and visualizing learning data.
      REACT_APP_TITLE=AWIL
      ```
 
-3. Configure the frontend Web App:
+4. Configure the frontend Web App:
    - Go to Configuration > General settings
    - Set "Stack settings" to Node 18 LTS
    - Set "Startup Command" to: `serve -s build -l 3000`
    - Enable "Always On" (optional, but recommended)
 
-4. Deploy both apps:
+5. Deploy both apps:
    - Connect your GitHub repository to both Web Apps
    - Select the main branch
    - For backend, set:
@@ -110,6 +122,13 @@ A full-stack web application for managing and visualizing learning data.
    - For frontend, set:
      - Build command: `npm run build`
      - Start command: `serve -s build -l 3000`
+
+6. Configure CORS in backend:
+   - Go to your backend Web App
+   - Navigate to CORS settings
+   - Add your frontend URL: `https://awil-frontend.azurewebsites.net`
+   - Enable "Access-Control-Allow-Credentials"
+   - Save the changes
 
 ## Contributing
 
